@@ -1,9 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>💬 Free Chat - No Setup Required</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Chat PWA</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4a90e2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Free Chat">
+    
+    <!-- PWA Icons -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    
     <style>
         * {
             margin: 0;
@@ -36,18 +47,32 @@
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
-            text-align: center;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .header p {
-            font-size: 12px;
-            opacity: 0.9;
+        .install-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.5);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .install-btn.show {
+            display: block;
         }
 
         .user-info {
@@ -110,10 +135,6 @@
             border-radius: 15px;
             cursor: pointer;
             font-size: 12px;
-        }
-
-        .change-name-btn:hover {
-            background: #e9ecef;
         }
 
         .messages {
@@ -187,7 +208,7 @@
         }
 
         .input-area {
-            padding: 20px;
+            padding: 15px 20px;
             background: white;
             border-top: 1px solid #e9ecef;
         }
@@ -195,6 +216,7 @@
         .input-wrapper {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         #messageInput {
@@ -220,97 +242,59 @@
             font-weight: 600;
         }
 
-        #sendButton:hover {
-            background: #357abd;
-        }
-
-        #sendButton:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .emoji-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px 10px;
-        }
-
-        .emoji-picker {
-            display: flex;
-            gap: 5px;
-            padding: 10px;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-
-        .emoji-picker span {
-            font-size: 24px;
-            cursor: pointer;
-            padding: 5px;
-        }
-
-        .emoji-picker span:hover {
-            background: #f0f0f0;
-            border-radius: 5px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .welcome-screen {
-            padding: 40px 20px;
-            text-align: center;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin: 20px;
-        }
-
-        .welcome-screen h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .name-input {
-            display: flex;
-            gap: 10px;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-        .name-input input {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid #e9ecef;
-            border-radius: 5px;
-        }
-
-        .name-input button {
-            padding: 10px 20px;
-            background: #4a90e2;
+        .notification-badge {
+            background: #ff4444;
             color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;
         }
 
-        .online-count {
+        .offline-banner {
+            background: #ffc107;
+            color: #333;
+            text-align: center;
+            padding: 5px;
             font-size: 12px;
-            color: #28a745;
-            margin-top: 5px;
+            display: none;
+        }
+
+        .offline-banner.show {
+            display: block;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            body {
+                padding: 0;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="chat-container">
+        <!-- Offline Banner -->
+        <div class="offline-banner" id="offlineBanner">
+            📡 You're offline - Messages will send when connected
+        </div>
+
+        <!-- Header -->
         <div class="header">
-            <h1>💬 Simple Free Chat</h1>
-            <p>No login • No storage • 100% Free</p>
+            <h1>💬 Free Chat</h1>
+            <button class="install-btn" id="installBtn" onclick="installPWA()">📱 Install App</button>
         </div>
 
         <!-- User Info -->
@@ -323,7 +307,7 @@
                     <span id="onlineCount">0</span> online
                 </div>
             </div>
-            <button class="change-name-btn" onclick="showNameModal()">Change Name</button>
+            <button class="change-name-btn" onclick="showNameModal()">Change</button>
         </div>
 
         <!-- Messages Container -->
@@ -334,30 +318,15 @@
 
         <!-- Input Area -->
         <div class="input-area">
-            <!-- Emoji Picker -->
-            <div id="emojiPicker" class="emoji-picker hidden">
-                <span onclick="addEmoji('😊')">😊</span>
-                <span onclick="addEmoji('😂')">😂</span>
-                <span onclick="addEmoji('❤️')">❤️</span>
-                <span onclick="addEmoji('👍')">👍</span>
-                <span onclick="addEmoji('🎉')">🎉</span>
-                <span onclick="addEmoji('🔥')">🔥</span>
-                <span onclick="addEmoji('👋')">👋</span>
-                <span onclick="addEmoji('🙏')">🙏</span>
-                <span onclick="addEmoji('😎')">😎</span>
-                <span onclick="addEmoji('🥳')">🥳</span>
-            </div>
-
             <div class="input-wrapper">
-                <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
                 <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
                 <button id="sendButton">Send</button>
             </div>
         </div>
     </div>
 
-    <!-- Name Change Modal (Simple inline prompt) -->
-    <div id="nameModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+    <!-- Name Modal -->
+    <div id="nameModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
         <div style="background: white; padding: 20px; border-radius: 10px; width: 300px;">
             <h3 style="margin-bottom: 15px;">Enter your name</h3>
             <input type="text" id="newNameInput" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 2px solid #e9ecef; border-radius: 5px;" placeholder="Your name">
@@ -374,7 +343,7 @@
 
     <script>
         // =============================================
-        // YOUR FIREBASE CONFIG (USING YOUR EXISTING PROJECT)
+        // YOUR FIREBASE CONFIG
         // =============================================
         const firebaseConfig = {
             apiKey: "AIzaSyDPwGUW6zz20uRXuUeSfIwoxmD8FmBl6QU",
@@ -395,11 +364,99 @@
         // =============================================
         let currentUser = {
             id: 'user_' + Math.random().toString(36).substr(2, 9),
-            name: 'Anonymous_' + Math.floor(Math.random() * 1000)
+            name: 'User_' + Math.floor(Math.random() * 1000)
         };
         
         let typingTimer;
         let isTyping = false;
+        let deferredPrompt;
+        let offlineMessages = [];
+
+        // =============================================
+        // PWA INSTALLATION
+        // =============================================
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').classList.add('show');
+        });
+
+        function installPWA() {
+            if (!deferredPrompt) return;
+            
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User installed the app');
+                }
+                deferredPrompt = null;
+                document.getElementById('installBtn').classList.remove('show');
+            });
+        }
+
+        // =============================================
+        // NOTIFICATIONS
+        // =============================================
+        async function requestNotificationPermission() {
+            if ('Notification' in window) {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    console.log('Notification permission granted');
+                }
+            }
+        }
+
+        function showNotification(title, body) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                // Check if app is in background
+                if (document.hidden) {
+                    new Notification(title, {
+                        body: body,
+                        icon: 'icon-192.png',
+                        badge: 'icon-192.png',
+                        vibrate: [200, 100, 200]
+                    });
+                }
+            }
+        }
+
+        // =============================================
+        // OFFLINE SUPPORT
+        // =============================================
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        function updateOnlineStatus() {
+            const banner = document.getElementById('offlineBanner');
+            if (navigator.onLine) {
+                banner.classList.remove('show');
+                // Send any offline messages
+                sendOfflineMessages();
+            } else {
+                banner.classList.add('show');
+            }
+        }
+
+        function saveOfflineMessage(message) {
+            offlineMessages.push(message);
+            localStorage.setItem('offlineMessages', JSON.stringify(offlineMessages));
+        }
+
+        async function sendOfflineMessages() {
+            const saved = localStorage.getItem('offlineMessages');
+            if (saved) {
+                offlineMessages = JSON.parse(saved);
+                for (const msg of offlineMessages) {
+                    try {
+                        await database.ref('messages').push(msg);
+                    } catch (e) {
+                        console.error('Failed to send offline message:', e);
+                    }
+                }
+                offlineMessages = [];
+                localStorage.removeItem('offlineMessages');
+            }
+        }
 
         // =============================================
         // INITIALIZATION
@@ -410,16 +467,18 @@
             loadMessages();
             setupTypingListener();
             setupOnlineCount();
+            requestNotificationPermission();
+            updateOnlineStatus();
+            sendOfflineMessages();
         }
 
-        // Update user info in UI
         function updateUserDisplay() {
             document.getElementById('displayName').textContent = currentUser.name;
             document.getElementById('avatar').textContent = currentUser.name.charAt(0).toUpperCase();
         }
 
         // =============================================
-        // PRESENCE SYSTEM (Free - uses Realtime DB)
+        // PRESENCE SYSTEM
         // =============================================
         function setupPresence() {
             const presenceRef = database.ref('presence/' + currentUser.id);
@@ -445,10 +504,9 @@
         }
 
         // =============================================
-        // MESSAGES (Free - uses Realtime DB)
+        // MESSAGES
         // =============================================
         function loadMessages() {
-            // Load last 50 messages
             database.ref('messages')
                 .orderByChild('timestamp')
                 .limitToLast(50)
@@ -456,6 +514,14 @@
                     const message = snapshot.val();
                     message.id = snapshot.key;
                     displayMessage(message);
+                    
+                    // Show notification for new messages
+                    if (message.userId !== currentUser.id) {
+                        showNotification(
+                            message.userName,
+                            message.text.substring(0, 50) + (message.text.length > 50 ? '...' : '')
+                        );
+                    }
                 });
         }
 
@@ -472,35 +538,40 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
-            database.ref('messages').push(message)
-                .then(() => {
-                    input.value = '';
-                    stopTyping();
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                    alert('Failed to send message. Check your connection.');
-                });
+            if (navigator.onLine) {
+                database.ref('messages').push(message)
+                    .then(() => {
+                        input.value = '';
+                        stopTyping();
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        saveOfflineMessage(message);
+                        alert('Message saved. Will send when online.');
+                        input.value = '';
+                    });
+            } else {
+                saveOfflineMessage(message);
+                alert('You are offline. Message saved and will send when online.');
+                input.value = '';
+            }
         }
 
         function displayMessage(message) {
             const container = document.getElementById('messages');
             
-            // Prevent duplicates
             if (document.getElementById(`msg-${message.id}`)) return;
             
             const messageDiv = document.createElement('div');
             messageDiv.id = `msg-${message.id}`;
             messageDiv.className = 'message';
             
-            // Check if this is my message
             if (message.userId === currentUser.id) {
                 messageDiv.classList.add('sent');
             } else {
                 messageDiv.classList.add('received');
             }
             
-            // Format time
             let timeString = '';
             if (message.timestamp) {
                 const date = new Date(message.timestamp);
@@ -520,7 +591,7 @@
         }
 
         // =============================================
-        // TYPING INDICATOR (Free - uses Realtime DB)
+        // TYPING INDICATOR
         // =============================================
         function setupTypingListener() {
             database.ref('typing').on('value', (snapshot) => {
@@ -532,7 +603,6 @@
                     return;
                 }
                 
-                // Filter out current user
                 const users = Object.entries(typingUsers || {})
                     .filter(([id, data]) => id !== currentUser.id && data.name)
                     .map(([id, data]) => data.name);
@@ -548,7 +618,7 @@
         }
 
         function startTyping() {
-            if (!isTyping) {
+            if (!isTyping && navigator.onLine) {
                 isTyping = true;
                 database.ref('typing/' + currentUser.id).set({
                     name: currentUser.name,
@@ -558,12 +628,14 @@
         }
 
         function stopTyping() {
-            isTyping = false;
-            database.ref('typing/' + currentUser.id).remove();
+            if (isTyping) {
+                isTyping = false;
+                database.ref('typing/' + currentUser.id).remove();
+            }
         }
 
         // =============================================
-        // UI FUNCTIONS
+        // UTILITY FUNCTIONS
         // =============================================
         function scrollToBottom() {
             const container = document.getElementById('messages');
@@ -576,23 +648,7 @@
             return div.innerHTML;
         }
 
-        // =============================================
-        // EMOJI PICKER
-        // =============================================
-        function toggleEmojiPicker() {
-            const picker = document.getElementById('emojiPicker');
-            picker.classList.toggle('hidden');
-        }
-
-        function addEmoji(emoji) {
-            const input = document.getElementById('messageInput');
-            input.value += emoji;
-            input.focus();
-        }
-
-        // =============================================
-        // NAME MANAGEMENT
-        // =============================================
+        // Name management
         function showNameModal() {
             document.getElementById('nameModal').style.display = 'flex';
             document.getElementById('newNameInput').value = currentUser.name;
@@ -605,7 +661,6 @@
         function changeName() {
             const newName = document.getElementById('newNameInput').value.trim();
             if (newName) {
-                // Update presence with new name
                 database.ref('presence/' + currentUser.id).update({
                     name: newName
                 });
@@ -635,26 +690,22 @@
             }, 1000);
         });
 
-        // Click outside emoji picker to close
-        document.addEventListener('click', (e) => {
-            const picker = document.getElementById('emojiPicker');
-            const emojiBtn = document.querySelector('.emoji-btn');
-            
-            if (picker && !picker.contains(e.target) && !emojiBtn.contains(e.target)) {
-                picker.classList.add('hidden');
+        // Handle visibility change for notifications
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // App is in foreground, clear any badges
+                document.title = 'Free Chat';
             }
         });
 
-        // Initialize app
+        // Initialize
         init();
 
-        // Clean up on page unload
+        // Cleanup
         window.addEventListener('beforeunload', () => {
             stopTyping();
             database.ref('presence/' + currentUser.id).remove();
         });
-
-        console.log('✅ Free Chat initialized!');
     </script>
 </body>
 </html>
