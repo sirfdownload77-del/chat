@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Icons</title>
+</head>
+<body>
+    <canvas id="canvas192" width="192" height="192"></canvas>
+    <canvas id="canvas512" width="512" height="512"></canvas>
+    
+    <script>
+        function drawIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#4a90e2';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Chat bubble
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size*0.3, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Text
+            ctx.fillStyle = '#4a90e2';
+            ctx.font = `bold ${size*0.4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('💬', size/2, size/2);
+        }
+        
+        drawIcon('canvas192', 192);
+        drawIcon('canvas512', 512);
+        
+        // Download icons
+        document.write('<br><a href="' + document.getElementById('canvas192').toDataURL() + '" download="icon-192.png">Download 192x192 icon</a><br>');
+        document.write('<a href="' + document.getElementById('canvas512').toDataURL() + '" download="icon-512.png">Download 512x512 icon</a>');
+    </script>
+</body>
+</html>
